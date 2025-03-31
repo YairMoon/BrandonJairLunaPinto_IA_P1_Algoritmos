@@ -12,37 +12,37 @@ def bidirectional_search(graph, start, goal):
     """
     if start == goal:
         return [start]  # Si el inicio es igual al objetivo, retornamos directamente
-    
+
     forward_queue = deque([[start]])  # Cola para la búsqueda desde el inicio
     backward_queue = deque([[goal]])  # Cola para la búsqueda desde el objetivo
-    forward_visited = {start}  # Nodos visitados desde el inicio
-    backward_visited = {goal}  # Nodos visitados desde el objetivo
-    
+    forward_visited = {start: [start]}  # Diccionario para registrar los caminos visitados desde el inicio
+    backward_visited = {goal: [goal]}  # Diccionario para registrar los caminos visitados desde el objetivo
+
     while forward_queue and backward_queue:
         # Expansión desde el inicio
         forward_path = forward_queue.popleft()
         forward_node = forward_path[-1]
-        
+
         if forward_node in backward_visited:
-            return forward_path + backward_queue[backward_visited[forward_node]][::-1]
-        
-        for neighbor in graph.get(forward_node, []):
+            return forward_path + backward_visited[forward_node][::-1][1:]  # Unir los caminos y evitar duplicados
+
+        for neighbor in graph.get(forward_node, []):  # Exploramos los vecinos
             if neighbor not in forward_visited:
-                forward_visited.add(neighbor)
+                forward_visited[neighbor] = forward_path + [neighbor]
                 forward_queue.append(forward_path + [neighbor])
-        
+
         # Expansión desde el objetivo
         backward_path = backward_queue.popleft()
         backward_node = backward_path[-1]
-        
+
         if backward_node in forward_visited:
-            return forward_queue[forward_visited[backward_node]] + backward_path[::-1]
-        
-        for neighbor in graph.get(backward_node, []):
+            return forward_visited[backward_node] + backward_path[::-1][1:]  # Unir los caminos y evitar duplicados
+
+        for neighbor in graph.get(backward_node, []):  # Exploramos los vecinos
             if neighbor not in backward_visited:
-                backward_visited.add(neighbor)
+                backward_visited[neighbor] = backward_path + [neighbor]
                 backward_queue.append(backward_path + [neighbor])
-    
+
     return None  # Si no encontramos un camino, retornamos None
 
 # Ejemplo de uso
