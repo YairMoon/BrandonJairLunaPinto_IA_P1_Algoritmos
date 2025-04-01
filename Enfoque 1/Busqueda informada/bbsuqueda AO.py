@@ -64,3 +64,15 @@ def heuristic(node):
 ao_star_solver = AOStar(graph, heuristic)
 ao_star_solver.ao_star('A')
 print("Solución encontrada por AO*:", ao_star_solver.get_solution('A'))
+
+
+
+
+
+
+
+
+
+
+
+
