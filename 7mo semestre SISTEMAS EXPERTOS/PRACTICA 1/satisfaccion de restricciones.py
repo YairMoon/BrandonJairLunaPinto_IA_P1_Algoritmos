@@ -1,20 +1,20 @@
-print("=== CSP optimizado: Presupuesto semanal ===")
+print("=== CSP: Mejor combinación de presupuesto semanal ===")
 
-# Pedir presupuesto total y límites
+# Entradas
 presupuesto_total = int(input("Ingresa tu presupuesto total para la semana: "))
 min_comida = int(input("Gasto mínimo en comida: "))
 min_transporte = int(input("Gasto mínimo en transporte: "))
 max_ocio = int(input("Gasto máximo en ocio: "))
 
-# Variables y dominios con pasos mayores para reducir combinaciones
+# Variables y dominios con pasos grandes
 variables = ['comida', 'transporte', 'ocio']
 dominios = {
-    'comida': list(range(min_comida, presupuesto_total + 1, 10)),       # paso 10
-    'transporte': list(range(min_transporte, presupuesto_total + 1, 10)),# paso 10
-    'ocio': list(range(0, max_ocio + 1, 5))                               # paso 5
+    'comida': list(range(min_comida, presupuesto_total + 1, 10)),
+    'transporte': list(range(min_transporte, presupuesto_total + 1, 10)),
+    'ocio': list(range(0, max_ocio + 1, 5))
 }
 
-# Función de restricciones
+# Restricciones
 def restricciones(asignacion):
     if 'comida' in asignacion and asignacion['comida'] < min_comida:
         return False
@@ -26,26 +26,36 @@ def restricciones(asignacion):
         return False
     return True
 
-# Backtracking rápido: busca todas las soluciones
-def backtracking_todas(asignacion={}, soluciones=[]):
+# Backtracking que guarda solo la mejor solución
+mejor_solucion = None
+mejor_sobrante = -1  # dinero sobrante máximo
+
+def backtracking_mejor(asignacion={}):
+    global mejor_solucion, mejor_sobrante
     if len(asignacion) == len(variables):
-        soluciones.append(asignacion.copy())
+        total = sum(asignacion.values())
+        sobrante = presupuesto_total - total
+        if sobrante > mejor_sobrante:
+            mejor_sobrante = sobrante
+            mejor_solucion = asignacion.copy()
         return
     var = next(v for v in variables if v not in asignacion)
     for valor in dominios[var]:
         asignacion[var] = valor
         if restricciones(asignacion):
-            backtracking_todas(asignacion, soluciones)
+            backtracking_mejor(asignacion)
         asignacion.pop(var)
-    return soluciones
 
 # Ejecutar búsqueda
-soluciones = backtracking_todas()
-if soluciones:
-    print(f"\nSe encontraron {len(soluciones)} soluciones posibles:")
-    for i, sol in enumerate(soluciones, 1):
-        total = sum(sol.values())
-        print(f"Solución {i}: Comida: ${sol['comida']}, Transporte: ${sol['transporte']}, Ocio: ${sol['ocio']} | Total: ${total}")
+backtracking_mejor()
+
+if mejor_solucion:
+    total = sum(mejor_solucion.values())
+    sobrante = presupuesto_total - total
+    print("\nMejor solución encontrada:")
+    for cat, gasto in mejor_solucion.items():
+        print(f"  {cat.capitalize()}: ${gasto}")
+    print(f"  Total gastado: ${total}")
+    print(f"  Dinero sobrante: ${sobrante}")
 else:
-    print("\nNo se encontró ninguna solución que cumpla las restricciones.")
-# CSP optimizado: Presupuesto semanal con búsqueda de todas las soluciones
+    print("No se encontró ninguna solución válida.")
